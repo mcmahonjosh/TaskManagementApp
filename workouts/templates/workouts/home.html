@@ -9,7 +9,7 @@
               <h5 class="card-title">{{ workout.title }}</h5>
               <h6 class="card-subtitle mb-2 text-muted">{{ workout.author }}</h6>
               <p class="card-text">{{ workout.description}}</p>
-              <h6 class="card-subtitle mb-2 text-muted">{{ workout.updated_at|date:"F d, Y" }}</h6>
+              <h6 class="card-subtitle mb-2 text-muted">{{ workout.updated_at|date:"l" }}</h6>
               <a href="{% url 'workouts-detail' workout.pk %}" class="card-link">View Workout</a>
             </div>
           </div>
