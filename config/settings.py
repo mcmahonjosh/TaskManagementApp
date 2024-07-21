@@ -70,6 +70,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                #for date and time
+                'workouts.context_processors.current_datetime',
             ],
         },
     },
@@ -136,3 +138,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 LOGIN_REDIRECT_URL = 'workouts-home'
 LOGIN_URL = 'user-login'
+
+#For Pomodoro Timer
+USE_TZ = True  # Enable timezone support
+TIME_ZONE = 'UTC'  # Set your desired timezone, e.g., 'America/New_York'

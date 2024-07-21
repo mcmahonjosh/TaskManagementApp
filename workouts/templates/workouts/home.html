@@ -1,16 +1,290 @@
+<link rel="stylesheet" href="/static/styles.css?" />
 {% extends 'workouts/base.html' %}
-
-
+<link
+  rel="stylesheet"
+  href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+/>
 {% block content %}
-    <h1>Workouts App Home</h1>
+<div class="container">
+  <div class="todolist">
+    <h1>Planner App Home</h1>
     {% for workout in workouts %}
-        <div class="card my-4" style="width: 18rem;">
-            <div class="card-body">
-              <h5 class="card-title">{{ workout.title }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ workout.author }}</h6>
-              <p class="card-text">{{ workout.description}}</p>
-              <h6 class="card-subtitle mb-2 text-muted">{{ workout.updated_at|date:"l" }}</h6>
-              <a href="{% url 'workouts-detail' workout.pk %}" class="card-link">View Workout</a>
-            </div>
+    <div class="card my-4" style="width: 35rem">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-8">
+            <h6 class="card-subtitle mb-2 text-muted">{{ workout.author }}</h6>
+            <a href="{% url 'workouts-detail' workout.pk %}" class="card-link"
+              >{{ workout.title }}</a
+            >
           </div>
-    {% endfor %} {% endblock content %} 
+          {% if workout.author == user or user.is_staff %}
+          <div class="col-4">
+            <a
+              class="btn btn-outline-info"
+              href="{% url 'workouts-update' workout.id %}"
+              >Update</a
+            >
+            <a
+              class="btn btn-outline-danger"
+              href="{% url 'workouts-delete' workout.id %}"
+              >Delete</a
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="pomodoro">
+    <h1>Pomodoro Timer</h1>
+    <div id="timer">
+      <h3 id="event">{{ data.name }}</h3>
+      <h2>Time Remaining:</h2>
+      <div id="countdown">
+        {{ data.hours|stringformat:"02d" }} : {{ data.minutes|stringformat:"02d"
+        }} : {{ data.seconds|stringformat:"02d" }}
+      </div>
+    </div>
+
+    <div class="set-timer">
+      <h2>Set Pomodoro Timers</h2>
+      <div class="form-group">
+        <label for="study-hours">Study Time:</label>
+        <input type="number" id="study-hours" placeholder="Hours" min="0" />
+        <input
+          type="number"
+          id="study-minutes"
+          placeholder="Minutes"
+          min="0"
+          max="59"
+        />
+        <input
+          type="number"
+          id="study-seconds"
+          placeholder="Seconds"
+          min="0"
+          max="59"
+        />
+      </div>
+      <div class="form-group">
+        <label for="rest-hours">Rest Time:</label>
+        <input type="number" id="rest-hours" placeholder="Hours" min="0" />
+        <input
+          type="number"
+          id="rest-minutes"
+          placeholder="Minutes"
+          min="0"
+          max="59"
+        />
+        <input
+          type="number"
+          id="rest-seconds"
+          placeholder="Seconds"
+          min="0"
+          max="59"
+        />
+      </div>
+      <button class="btn btn-primary" onclick="startPomodoro()">
+        Start Pomodoro
+      </button>
+      <button class="btn btn-secondary" onclick="pausePomodoro()">Pause</button>
+      <button class="btn btn-success" onclick="resumePomodoro()">Resume</button>
+      <button class="btn btn-danger" onclick="resetPomodoro()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function updateTime() {
+    $.ajax({
+      url: '{% url "current-datetime" %}',
+      success: function (data) {
+        $("#added-time").text(data.added_time);
+      },
+    });
+  }
+
+  function setTime() {
+    var timeToSet = $("#time-input").val();
+    if (!timeToSet) {
+      alert("Please enter a valid datetime.");
+      return;
+    }
+
+    $.ajax({
+      url: '{% url "set-time" %}', // Ensure this URL matches your Django URL configuration
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ time: timeToSet }),
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}", // Ensure CSRF token is included
+      },
+      success: function (data) {
+        $("#stored-time").text(data.stored_time); // Update the stored time display
+        $("#time-input").val(""); // Clear the input field
+      },
+      error: function (xhr, status, error) {
+        console.error("An error occurred:", error);
+      },
+    });
+  }
+
+  $(function () {
+    updateTime();
+    setInterval(updateTime, 1000); // Update every second
+    resetPomodoro(); // Call resetPomodoro() on page load
+  });
+
+  var timerInterval;
+  var totalSeconds;
+  var isStudyTime = true;
+  var isPaused = false;
+  var resumeReady = false;
+  var remainingSeconds = 0; // Track remaining time
+
+  function startPomodoro() {
+    if (isPaused) {
+      return; // Do nothing if the timer is paused
+    }
+
+    var studyHours =
+      parseInt(document.getElementById("study-hours").value) || 0;
+    var studyMinutes =
+      parseInt(document.getElementById("study-minutes").value) || 0;
+    var studySeconds =
+      parseInt(document.getElementById("study-seconds").value) || 0;
+    var restHours = parseInt(document.getElementById("rest-hours").value) || 0;
+    var restMinutes =
+      parseInt(document.getElementById("rest-minutes").value) || 0;
+    var restSeconds =
+      parseInt(document.getElementById("rest-seconds").value) || 0;
+
+    var studyTime = studyHours * 3600 + studyMinutes * 60 + studySeconds;
+    var restTime = restHours * 3600 + restMinutes * 60 + restSeconds;
+
+    if (studyTime === 0 || restTime === 0) {
+      document.getElementById("countdown").textContent = ""; // Clear the display if no time is set
+      return;
+    }
+
+    // If the timer was paused, use the remaining time. Otherwise, use the study time.
+    console.log("we have some remaining time");
+    console.log(remainingSeconds);
+    totalSeconds = remainingSeconds != 0 ? remainingSeconds : studyTime;
+    console.log("total seconds");
+    console.log(totalSeconds);
+
+    function updateTimer() {
+      //console.log("timer not done");
+      if (totalSeconds > 0) {
+        totalSeconds--;
+        var hours = Math.floor(totalSeconds / 3600);
+        var minutes = Math.floor((totalSeconds % 3600) / 60);
+        var seconds = totalSeconds % 60;
+
+        document.getElementById("countdown").textContent =
+          (hours < 10 ? "0" : "") +
+          hours +
+          " : " +
+          (minutes < 10 ? "0" : "") +
+          minutes +
+          " : " +
+          (seconds < 10 ? "0" : "") +
+          seconds;
+      } else {
+        remainingSeconds = 0;
+        if (isStudyTime) {
+          if (Notification.permission === "granted") {
+            new Notification("Study Time Up!");
+          } else {
+            alert("Study Time Up!");
+          }
+        } else {
+          if (Notification.permission === "granted") {
+            new Notification("Rest Time Up!");
+          } else {
+            alert("Rest Time Up!");
+          }
+        }
+        console.log("timer done");
+        console.log(studyTime);
+        console.log(restTime);
+        isStudyTime = !isStudyTime; // Switch between study and rest
+        totalSeconds = isStudyTime ? studyTime : restTime;
+      }
+    }
+
+    // Update the timer display initially
+    updateTimer();
+
+    // Update the timer every second
+    timerInterval = setInterval(updateTimer, 1000);
+  }
+
+  function pausePomodoro() {
+    isPaused = true;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      remainingSeconds = totalSeconds; // Store remaining time
+      console.log(remainingSeconds);
+    }
+  }
+
+  function resumePomodoro() {
+    if (isPaused) {
+      isPaused = false;
+      startPomodoro(); // Restart timer with remaining time
+    }
+  }
+
+  function resetPomodoro() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    // Use remainingSeconds if the timer was paused, otherwise use the original values
+    if (remainingSeconds > 0) {
+      totalSeconds = remainingSeconds;
+    } else {
+      // Default to the study time if no time was previously set
+      var studyHours =
+        parseInt(document.getElementById("study-hours").value) || 0;
+      var studyMinutes =
+        parseInt(document.getElementById("study-minutes").value) || 0;
+      var studySeconds =
+        parseInt(document.getElementById("study-seconds").value) || 0;
+      totalSeconds = studyHours * 3600 + studyMinutes * 60 + studySeconds;
+    }
+    isPaused = false;
+    isStudyTime = true;
+    console.log("now");
+    // Update the countdown display
+    function updateTimerDisplay() {
+      var hours = Math.floor(totalSeconds / 3600);
+      var minutes = Math.floor((totalSeconds % 3600) / 60);
+      var seconds = totalSeconds % 60;
+
+      document.getElementById("countdown").textContent =
+        (hours < 10 ? "0" : "") +
+        hours +
+        " : " +
+        (minutes < 10 ? "0" : "") +
+        minutes +
+        " : " +
+        (seconds < 10 ? "0" : "") +
+        seconds;
+    }
+
+    updateTimerDisplay(); // Initial display update
+  }
+
+  // Request notification permission
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+</script>
+
+{% endblock content %}

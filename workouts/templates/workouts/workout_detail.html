@@ -1,22 +1,24 @@
-{% extends 'workouts/base.html' %}
+{% extends 'workouts/base.html' %} {% block content %}
+<h1>Task# {{object.id}}</h1>
 
+<div class="card my-4" style="width: 18rem">
+  <div class="card-body">
+    <h5 class="card-title">{{ object.title }}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">{{ object.author }}</h6>
+    <p class="card-text">{{ object.description}}</p>
+    <h6 class="card-subtitle mb-2 text-muted">
+      {{ object.updated_at|date:"F d, Y" }}
+    </h6>
+  </div>
+</div>
 
-{% block content %}
-    <h1>Workout# {{object.id}}</h1>
-    
-        <div class="card my-4" style="width: 18rem;">
-            <div class="card-body">
-              <h5 class="card-title">{{ object.title }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ object.author }}</h6>
-              <p class="card-text">{{ object.description}}</p>
-              <h6 class="card-subtitle mb-2 text-muted">{{ object.updated_at|date:"F d, Y" }}</h6>
-            </div>
-          </div>
-
-    {% if object.author == user or user.is_staff %}
-    <div class="col-4">
-        <a class="btn btn-outline-info" href="{% url 'workouts-update' object.id %}">Update</a>
-        <a class="btn btn-outline-danger" href="{% url 'workouts-delete' object.id %}">Delete</a>
-    </div>
-    {% endif %}
-    {% endblock content %}
+{% if object.author == user or user.is_staff %}
+<div class="col-4">
+  <a class="btn btn-outline-info" href="{% url 'workouts-update' object.id %}"
+    >Update</a
+  >
+  <a class="btn btn-outline-danger" href="{% url 'workouts-delete' object.id %}"
+    >Delete</a
+  >
+</div>
+{% endif %}{% endblock content %}

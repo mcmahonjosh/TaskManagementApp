@@ -32,6 +32,7 @@ urlpatterns = [
     path('logout/', logout_view, name="user-logout"),
     path('logout2/', TemplateView.as_view(template_name='users/logout2.html'), name="user-login2"),
     path('profile/', user_views.profile, name="user-profile"),
+    
 
     # new urls
     
