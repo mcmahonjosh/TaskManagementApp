@@ -1,1 +1,1 @@
-web: gunicorn PlannerApp
+web: gunicorn config.wsgi --log-file -
