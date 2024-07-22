@@ -38,7 +38,7 @@ PyGObject==3.42.1
 PyJWT==2.3.0
 pyparsing==2.4.7
 Pyrebase4==4.8.0
-python-apt==2.4.0+ubuntu2
+#python-apt==2.4.0+ubuntu2
 python-jwt==4.1.0
 PyYAML==5.4.1
 requests==2.32.3
