@@ -4,6 +4,7 @@ FROM python:3.10-slim
 # Set working directory
 WORKDIR /app
 
+
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y \
@@ -17,6 +18,9 @@ RUN apt-get update && \
     libffi-dev \
     libssl-dev \
     libsystemd-dev \
+    libgirepository1.0-dev \
+    libdbus-1-dev \
+    libcairo2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
