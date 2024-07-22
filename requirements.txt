@@ -4,12 +4,12 @@ blinker==1.4
 certifi==2020.6.20
 chardet==4.0.0
 charset-normalizer==3.3.2
-command-not-found==0.3
+#command-not-found==0.3
 crispy-bootstrap4==2024.1
 cryptography==3.4.8
 dbus-python==1.2.18
 distro==1.7.0
-distro-info==1.1+ubuntu0.2
+#distro-info==1.1+ubuntu0.2
 Django==5.0.7
 django-crispy-forms==2.2
 gcloud==0.18.3
