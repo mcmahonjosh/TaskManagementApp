@@ -3,7 +3,6 @@ asgiref==3.8.1
 blinker==1.4
 certifi==2020.6.20
 chardet==4.0.0
-command-not-found==0.3
 crispy-bootstrap4==2024.1
 cryptography==3.4.8
 dbus-python==1.2.18
